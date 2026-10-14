@@ -1,11 +1,12 @@
 🔥  [单词挑战在线 Vocabulary Challenge](https://creativelearners.netlify.app)
-
      [github](https://carfox163.github.io/cr/)
 
 🔥  [更多单词表下载](https://creativelearner.lanzouy.com/b0hd1d0af)  密码 clearn
      <br><br>            参考下载 https://github.com/mahavivo/english-wordlists<br>
 <br>
 🔥 [外语学习资料空间](http://2006b.ys168.com) 
+<br>
+🔥  [在线单词听写] (https://dctx.netlify.app/)
 <br>
 🔥公众号 <img src="https://github.com/user-attachments/assets/d5ac8edd-7db2-44fa-983d-69981b07b76c" width="150" height="100" />
 
