@@ -30,17 +30,24 @@
        .top-bar {
             display: flex;
             align-items: center;
-            justify-content: space-between;
             flex-wrap: wrap;
             gap: 12px;
             margin: 8px 0 12px;
         }
 
        .title-block {
+            flex: 1;
             display: flex;
-            align-items: baseline;
+            align-items: center;
             gap: 16px;
-            flex-wrap: wrap;
+            min-width: 200px;
+        }
+
+       .timer-wrap {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            min-width: 120px;
         }
 
        .main-title {
@@ -54,7 +61,7 @@
 
         #timer {
             position: relative;
-            font-size: 1.4em;
+            font-size: 2.2em;
             color: #e84393;
             background: linear-gradient(45deg, #e1f5fe, #f3e5f5);
             /* 浅色调彩色背景 */
@@ -313,11 +320,13 @@
         }
 
        .mode-selector {
+            flex: 1;
             display: flex;
-            justify-content: center;
+            justify-content: flex-end;
             align-items: center;
             flex-wrap: wrap;
             margin: 0;
+            min-width: 320px;
             /* 调整间距 */
         }
 
@@ -483,12 +492,12 @@
         <!-- 未选择文件时默认加载的词库说明 -->
         <span class="file-note" id="fileNote"
             title="四级核心词汇（高中基础上增加1700个） .xlsx">未选择文件时默认加载
-            @"四级核心词汇（高中基础上增加1700个） .xlsx"<em
+            @"四级核心词汇（高中基础上增加1700个） .xlsx"<br><em
                 id="fileStatus">（正在加载默认词库…）</em></span>
-        <button class="download-template" id="downloadTemplate">下载单词表模板</button>
+        <a href="https://creativelearner.lanzouy.com/b0hd1d0af" target="_blank" class="download-template" style="font-family: 'Microsoft YaHei';">更多单词表下载&gt; 密码 clearn</a>
     </div>
     <!-- 新增超链接 -->
-    <a href="https://creativelearner.lanzouy.com/b0hd1d0af" target="_blank" style="position: fixed; bottom: 5px; left: 25px; font-family: 'Microsoft YaHei';">更多单词表下载&gt; 密码 clearn</a> 
+    <button id="downloadTemplate" style="position: fixed; bottom: 5px; left: 25px; font-family: 'Microsoft YaHei'; background: none; border: none; color: #0000EE; text-decoration: underline; cursor: pointer; font-size: 1em;">下载单词表模板</button>
     <button class="review-btn" id="reviewBtn">单词复习</button>
     <button class="groups-selector" id="groupsSelector">分组: 2组</button>
     <button class="difficulty-btn" id="difficultyBtn">难度: 普通</button>
@@ -501,6 +510,8 @@
     <div class="top-bar">
         <div class="title-block">
             <h1 class="main-title">Vocabulary Challenge</h1>
+        </div>
+        <div class="timer-wrap">
             <div id="timer">计时：60</div>
         </div>
         <div class="mode-selector">
