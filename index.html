@@ -13,7 +13,7 @@
             background: #f9f5ff;
             font-family: 'Comic Sans MS', cursive, sans-serif; 
             margin: 0;
-            padding: 20px;
+            padding: 12px 14px;
             min-height: 100vh;
         }
 
@@ -27,27 +27,43 @@
             text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
         }
 
+       .top-bar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 12px;
+            margin: 8px 0 12px;
+        }
+
+       .title-block {
+            display: flex;
+            align-items: baseline;
+            gap: 16px;
+            flex-wrap: wrap;
+        }
+
        .main-title {
             text-align: left;
             color: #6c5ce7;
-            font-size: 2.8em;
-            margin: 20px 0 20px;
-            letter-spacing: 2px;
+            font-size: 1.9em;
+            margin: 0;
+            letter-spacing: 1px;
             display: inline-block;
         }
 
         #timer {
             position: relative;
-            font-size: 2.5em;
+            font-size: 1.4em;
             color: #e84393;
             background: linear-gradient(45deg, #e1f5fe, #f3e5f5);
             /* 浅色调彩色背景 */
-            padding: 10px 20px;
-            border-radius: 15px;
-            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+            padding: 5px 14px;
+            border-radius: 12px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
             text-align: center;
             width: fit-content;
-            margin: 0 0 0 20px;
+            margin: 0;
             display: inline-block;
             vertical-align: middle;
         }
@@ -55,9 +71,9 @@
        .game-container {
             display: flex;
             justify-content: space-between;
-            max-width: 1600px;
+            max-width: 100%;
             margin: 0 auto;
-            gap: 20px;
+            gap: 16px;
             z-index: 1;
             position: relative;
         }
@@ -299,7 +315,9 @@
        .mode-selector {
             display: flex;
             justify-content: center;
-            margin: 20px 0;
+            align-items: center;
+            flex-wrap: wrap;
+            margin: 0;
             /* 调整间距 */
         }
 
@@ -440,8 +458,8 @@
     </a>
     <!-- 将图片包裹在 <a> 标签内 -->
     <a href="http://2006b.ys168.com" target="_blank">
-        <img src="https://s3.bmp.ovh/imgs/2025/05/18/5748f0662563f7e7.png" width="182"
-            height="110" style="position: relative;">
+        <img src="https://s3.bmp.ovh/imgs/2025/05/18/5748f0662563f7e7.png" width="120"
+            height="72" style="position: relative;">
     </a>
     <div class="settings-panel">
         <div class="settings-row">
@@ -480,14 +498,18 @@
     <a href="https://github.com/carfox163/cr" target="_blank" style="position: fixed; bottom: 5px; right: 85px; font-family: 'Microsoft YaHei';">github项目</a>
     <a href="https://creativelearners.netlify.app/" target="_blank" style="position: fixed; bottom: 5px; right: 180px; font-family: 'Microsoft YaHei';">在线版</a>  
     <a href="https://dctx.netlify.app/" target="_blank" style="position: fixed; bottom: 5px; right: 20px; font-family: 'Microsoft YaHei';">去听写</a>  
-    <h1 class="main-title">Vocabulary Challenge</h1>
-    <div id="timer">计时：60</div>
-    <div class="mode-selector">
-        <button class="mode-btn active" data-mode="en-cn">英→中</button>
-        <button class="mode-btn" data-mode="cn-en">中→英</button>
-        <button class="mode-btn" data-mode="spelling">拼写测试</button>
-        <button class="start-btn" onclick="startGame()">开始</button>
-        <button class="reset-btn" onclick="resetGame()">重置</button>
+    <div class="top-bar">
+        <div class="title-block">
+            <h1 class="main-title">Vocabulary Challenge</h1>
+            <div id="timer">计时：60</div>
+        </div>
+        <div class="mode-selector">
+            <button class="mode-btn active" data-mode="en-cn">英→中</button>
+            <button class="mode-btn" data-mode="cn-en">中→英</button>
+            <button class="mode-btn" data-mode="spelling">拼写测试</button>
+            <button class="start-btn" onclick="startGame()">开始</button>
+            <button class="reset-btn" onclick="resetGame()">重置</button>
+        </div>
     </div>
 
     <div class="game-container" id="gameContainer">
