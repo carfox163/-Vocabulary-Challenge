@@ -139,6 +139,34 @@
             background: #574b90;
         }
 
+       .nav-col {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 6px;
+        }
+
+       .answer-btn {
+            padding: 6px 10px;
+            background: #fdcb6e;
+            color: #2d3436;
+            border: none;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.85em;
+            transition: all 0.3s;
+        }
+
+       .answer-btn:hover {
+            background: #f5a623;
+        }
+
+       .bubble.correct-highlight {
+            background: #00b894 !important;
+            color: #fff;
+            box-shadow: 0 0 0 3px #00b894;
+        }
+
        .bubbles-container {
             display: flex;
             flex-wrap: wrap;
@@ -463,7 +491,7 @@
 <body>
     <!-- 添加超链接包裹文字，使用 target="_blank" 新窗口打开 -->
     <a href="http://2006b.ys168.com" target="_blank">
-        <div class="header">by CreativeLearner & Evita v2.6</div>
+        <div class="header">by Evita & CreativeLearner v2.5</div>
     </a>
     <!-- 将图片包裹在 <a> 标签内 -->
     <a href="http://2006b.ys168.com" target="_blank">
@@ -532,7 +560,10 @@
             <div class="word-box-container">
                 <button class="prev-btn" onclick="prevQuestion('A')">←</button>
                 <div class="word-box" id="wordA" onclick="playSound(this.textContent)"></div>
-                <button class="next-btn" onclick="nextQuestion('A')">→</button>
+                <div class="nav-col">
+                    <button class="answer-btn" id="showAnswerA" onclick="showAnswer('A')" style="display: none;">查看答案</button>
+                    <button class="next-btn" onclick="nextQuestion('A')">→</button>
+                </div>
             </div>
             <div class="bubbles-container" id="bubblesA"></div>
             <div class="result" id="resultA"></div>
@@ -760,6 +791,20 @@
                 if (groupA) {
                     groupA.style.width = '70%';
                 }
+                // 分组为1组时显示"查看答案"按钮
+                const showAnswerBtn = document.getElementById('showAnswerA');
+                if (showAnswerBtn) {
+                    showAnswerBtn.style.display = 'block';
+                }
+                // 分组为1组时按钮文字改为"复习上一个"/"下一个"
+                const prevBtnA = document.querySelector('#groupA .prev-btn');
+                if (prevBtnA) {
+                    prevBtnA.textContent = '复习上一个';
+                }
+                const nextBtnA = document.querySelector('#groupA .next-btn');
+                if (nextBtnA) {
+                    nextBtnA.textContent = '下一个';
+                }
             } else {
                 gameContainer.style.justifyContent = 'space-around';
                 const groupA = document.getElementById('groupA');
@@ -774,6 +819,14 @@
                 if (groupC) {
                     groupC.style.width = '45%';
                 }
+                // 非1组时隐藏"查看答案"按钮
+                const showAnswerBtn = document.getElementById('showAnswerA');
+                if (showAnswerBtn) {
+                    showAnswerBtn.style.display = 'none';
+                }
+                // 非1组时恢复按钮文字
+                document.querySelectorAll('.prev-btn').forEach(btn => btn.textContent = '←');
+                document.querySelectorAll('.next-btn').forEach(btn => btn.textContent = '→');
             }
         }
 
@@ -902,6 +955,23 @@
             if (groupsCount === 1 && gameMode === 'en-cn') {
                 playSound(question);
             }
+        }
+
+        function showAnswer(group) {
+            if (!currentWords[group]) return;
+            // 根据模式确定正确答案文本
+            let correctText;
+            if (gameMode === 'en-cn') {
+                correctText = currentWords[group].中文;
+            } else {
+                correctText = currentWords[group].英文.toLowerCase();
+            }
+            // 绿色高亮正确答案气泡
+            document.querySelectorAll(`#bubbles${group} .bubble`).forEach(bubble => {
+                if (bubble.textContent === correctText) {
+                    bubble.classList.add('correct-highlight');
+                }
+            });
         }
 
         function generateNewQuestion(group) {
