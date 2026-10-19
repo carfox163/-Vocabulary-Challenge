@@ -998,8 +998,8 @@
                     break;
             }
 
-            // 仅修改一处：分组为1组且英→中模式下，每个单词自动发音，无需点击
-            if (groupsCount === 1 && gameMode === 'en-cn') {
+            // 仅修改一处：分组为1组时，无论英→中、中→英、拼写测试模式，每个单词均自动发音，无需点击
+            if (groupsCount === 1) {
                 playSound(question);
             }
         }
