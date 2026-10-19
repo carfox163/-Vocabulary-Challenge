@@ -167,6 +167,42 @@
             box-shadow: 0 0 0 3px #00b894;
         }
 
+       .example-box {
+            margin-top: 12px;
+            text-align: left;
+            padding: 12px 16px;
+            background: #fdf3e3;
+            border-radius: 10px;
+            font-size: 1em;
+            line-height: 1.7;
+            max-width: 90%;
+            margin-left: auto;
+            margin-right: auto;
+        }
+
+       .example-title {
+            font-weight: bold;
+            margin-bottom: 6px;
+        }
+
+       .example-item {
+            margin-bottom: 5px;
+        }
+
+       .example-retry {
+            padding: 4px 14px;
+            background: #0984e3;
+            color: #fff;
+            border: none;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.9em;
+        }
+
+       .example-retry:hover {
+            background: #0763b3;
+        }
+
        .bubbles-container {
             display: flex;
             flex-wrap: wrap;
@@ -566,6 +602,7 @@
                 </div>
             </div>
             <div class="bubbles-container" id="bubblesA"></div>
+            <div class="example-box" id="exampleA"></div>
             <div class="result" id="resultA"></div>
         </div>
         <div class="group" id="groupB">
@@ -970,11 +1007,13 @@
         function showAnswer(group) {
             if (!currentWords[group]) return;
             // 根据模式确定正确答案文本
-            let correctText;
+            let correctText, answerLang;
             if (gameMode === 'en-cn') {
                 correctText = currentWords[group].中文;
+                answerLang = 'zh-CN';
             } else {
                 correctText = currentWords[group].英文.toLowerCase();
+                answerLang = 'en-US';
             }
             // 绿色高亮正确答案气泡
             document.querySelectorAll(`#bubbles${group} .bubble`).forEach(bubble => {
@@ -982,6 +1021,127 @@
                     bubble.classList.add('correct-highlight');
                 }
             });
+            // 1. 自动朗读正确答案：中文用 Microsoft Xiaoxiao，英文用 Microsoft Ryan
+            speakAnswer(correctText, answerLang);
+            // 2. 在答案下方显示典型例句 1-2 个
+            showExampleSentences(group);
+        }
+
+        // 选取优先语音：中文优先 Microsoft Xiaoxiao，英文优先 Microsoft Ryan
+        function pickPreferredVoice(lang) {
+            const synth = window.speechSynthesis;
+            const voices = synth.getVoices();
+            const voiceKeyword = lang.startsWith('zh') ? 'xiaoxiao' : 'ryan';
+            const langPrefix = lang.slice(0, 2);
+            const preferred = voices.find(v =>
+                v.name.toLowerCase().includes(voiceKeyword) && v.lang.toLowerCase().startsWith(langPrefix));
+            if (preferred) return preferred;
+            return voices.find(v => v.lang.toLowerCase().startsWith(langPrefix)) || null;
+        }
+
+        // 用优先语音朗读文本（语音列表未加载完成时自动等待）
+        function speakWithPreferredVoice(text, lang) {
+            if (!window.speechSynthesis) return;
+            const synth = window.speechSynthesis;
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = lang;
+            utterance.volume = 1;
+            const applyVoice = () => {
+                const voice = pickPreferredVoice(lang);
+                if (voice) utterance.voice = voice;
+                synth.speak(utterance);
+            };
+            if (synth.getVoices().length) {
+                applyVoice();
+            } else {
+                synth.onvoiceschanged = () => {
+                    synth.onvoiceschanged = null;
+                    applyVoice();
+                };
+                synth.getVoices();
+            }
+        }
+
+        // 朗读正确答案，优先使用 Microsoft Xiaoxiao（中文）/ Microsoft Ryan（英文）
+        function speakAnswer(text, lang) {
+            if (!window.speechSynthesis) return;
+            window.speechSynthesis.cancel();
+            speakWithPreferredVoice(text, lang);
+        }
+
+        // 例句缓存：同一单词只请求一次，避免重复失败
+        const exampleCache = {};
+
+        function sleep(ms) {
+            return new Promise(resolve => setTimeout(resolve, ms));
+        }
+
+        // 带超时的 fetch，避免请求长时间挂起
+        function fetchWithTimeout(url, ms) {
+            const controller = new AbortController();
+            const timer = setTimeout(() => controller.abort(), ms);
+            return fetch(url, { signal: controller.signal }).finally(() => clearTimeout(timer));
+        }
+
+        function renderExamples(box, examples) {
+            box.innerHTML = '<div class="example-title">例句：</div>' +
+                examples.map(e => `<div class="example-item">• ${e}</div>`).join('');
+        }
+
+        // 从在线词典获取该单词/短语的典型例句（1-2 个），带自动重试与缓存
+        async function showExampleSentences(group) {
+            const box = document.getElementById(`example${group}`);
+            if (!box || !currentWords[group]) return;
+            const word = currentWords[group].英文;
+            if (!word) return;
+
+            // 已缓存则直接显示
+            if (exampleCache[word]) {
+                renderExamples(box, exampleCache[word]);
+                return;
+            }
+
+            box.innerHTML = '<div class="example-title">例句：</div><div class="example-item">正在加载…</div>';
+
+            const failHtml = '<div class="example-title">例句：</div>' +
+                '<div class="example-item">例句获取失败（网络不稳定，请稍后重试）</div>' +
+                '<div class="example-item"><button class="example-retry" onclick="showExampleSentences(\'A\')">重试</button></div>';
+
+            for (let attempt = 1; attempt <= 3; attempt++) {
+                try {
+                    const res = await fetchWithTimeout(
+                        `https://api.dictionaryapi.dev/api/v2/entries/en/${encodeURIComponent(word)}`, 8000);
+                    if (res.status === 404) {
+                        // 词典中确实没有该词，无需重试
+                        box.innerHTML = '<div class="example-title">例句：</div><div class="example-item">未找到该单词的典型例句</div>';
+                        return;
+                    }
+                    if (!res.ok) {
+                        // 服务端异常（如 530），稍后自动重试
+                        if (attempt < 3) { await sleep(600 * attempt); continue; }
+                        box.innerHTML = failHtml;
+                        return;
+                    }
+                    const data = await res.json();
+                    const examples = [];
+                    (data[0] && data[0].meanings || []).forEach(m => {
+                        (m.definitions || []).forEach(d => {
+                            if (d.example && examples.length < 2) examples.push(d.example);
+                        });
+                    });
+                    if (!examples.length) {
+                        box.innerHTML = '<div class="example-title">例句：</div><div class="example-item">未找到该单词的典型例句</div>';
+                        return;
+                    }
+                    exampleCache[word] = examples;
+                    renderExamples(box, examples);
+                    return;
+                } catch (err) {
+                    // 网络/超时异常，稍后自动重试
+                    if (attempt < 3) { await sleep(600 * attempt); continue; }
+                    box.innerHTML = failHtml;
+                }
+            }
         }
 
         function generateNewQuestion(group) {
@@ -1039,6 +1199,12 @@
             const bubbles = document.getElementById(`bubbles${group}`);
             if (bubbles) {
                 bubbles.innerHTML = '';
+            }
+
+            // 换题时同步清空例句框
+            const exampleBox = document.getElementById(`example${group}`);
+            if (exampleBox) {
+                exampleBox.innerHTML = '';
             }
 
             options.forEach(option => {
@@ -1362,25 +1528,8 @@ function playSound(word) {
     if (gameMode === 'cn-en' || gameMode === 'spelling') {
         // 提取中文内容，去除词性等非中文内容
         textToSpeak = textToSpeak.replace(/[a-zA-Z. ]+/g, '');
-
-        const utterance = new SpeechSynthesisUtterance(textToSpeak);
-        // 设置中文语言
-        utterance.lang = 'zh-CN';
-
-        // 尝试设置高质量的语音引擎（不同浏览器支持的语音引擎可能不同）
-        const voices = synth.getVoices();
-        for (let i = 0; i < voices.length; i++) {
-            if (voices[i].lang === 'zh-CN') {
-                // 你可以根据需要选择特定的语音引擎
-                utterance.voice = voices[i];
-                break;
-            }
-        }
-
-        // 设置音量（范围从 0 到 1）
-        utterance.volume = 1;
-
-        synth.speak(utterance);
+        // 中文发音优先使用 Microsoft Xiaoxiao 语音
+        speakWithPreferredVoice(textToSpeak, 'zh-CN');
     } else if (gameMode === 'en-cn' || gameMode === 'spelling') {
         const utterance = new SpeechSynthesisUtterance(word);
         utterance.lang = 'en-US';
