@@ -192,6 +192,7 @@
             margin-bottom: 6px;
             font-size: 1.3em;
             color: #e17055;
+            font-family: Arial, 'Arial Unicode MS', sans-serif;
         }
 
        .example-item {
@@ -1095,10 +1096,49 @@
             }
         }
 
+        // 词性缩略 → 完整单词（朗读时展开，避免把 n. 读成字母 n）
+        const POS_FULL = {
+            'n.': 'noun',
+            'v.': 'verb',
+            'vt.': 'transitive verb',
+            'vi.': 'intransitive verb',
+            'adj.': 'adjective',
+            'a.': 'adjective',
+            'adv.': 'adverb',
+            'ad.': 'adverb',
+            'prep.': 'preposition',
+            'conj.': 'conjunction',
+            'pron.': 'pronoun',
+            'num.': 'numeral',
+            'art.': 'article',
+            'aux.': 'auxiliary verb',
+            'interj.': 'interjection',
+            'int.': 'interjection',
+            'abbr.': 'abbreviation',
+            'pl.': 'plural',
+            'sing.': 'singular',
+            'phr.': 'phrase',
+            'sb.': 'somebody',
+            'sth.': 'something',
+            'esp.': 'especially',
+            'e.g.': 'for example',
+            'etc.': 'and so on'
+        };
+
+        // 把文本中的词性缩略字母展开为完整单词（如 n.→noun、vt.→transitive verb）
+        function expandPosTags(text) {
+            if (!text) return text;
+            return text.replace(/\b[a-zA-Z]+\.(?=\s|$|\/|&)/g, m => POS_FULL[m.toLowerCase()] || m);
+        }
+
         // 朗读正确答案，优先使用 Microsoft Xiaoxiao（中文）/ Microsoft Ryan（英文）
         function speakAnswer(text, lang) {
             if (!window.speechSynthesis) return;
             window.speechSynthesis.cancel();
+            // 朗读中文释义时，把词性缩略（如 n.、vt.）展开成完整单词朗读
+            if (lang.startsWith('zh')) {
+                text = expandPosTags(text);
+            }
             speakWithPreferredVoice(text, lang);
         }
 
