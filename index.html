@@ -1126,9 +1126,15 @@
         };
 
         // 把文本中的词性缩略字母展开为完整单词（如 n.→noun、vt.→transitive verb）
+        // 兼容写法：大小写（N./Vt.）、中英文点（. ． 。）、点后有无空格（n. 政策 / n.政策 / n．政策 / n。政策）、
+        //           无点仅空格分隔（n 政策）、冒号分隔（n:政策 / n：政策）、连写多词性（n.&v. 打败、n./v. 打败）等
         function expandPosTags(text) {
             if (!text) return text;
-            return text.replace(/\b[a-zA-Z]+\.(?=\s|$|\/|&)/g, m => POS_FULL[m.toLowerCase()] || m);
+            let t = text.replace(/\be\.g\.\s*/gi, 'for example ');
+            return t.replace(/(^|[\s/&、,，;；])([a-zA-Z]+)(?:[.\．。:：][\s]*|[\s]+|$)/g, (m, pre, letters) => {
+                const full = POS_FULL[letters.toLowerCase() + '.'];
+                return full ? (pre.trim() ? pre + ' ' : '') + full + ' ' : m;
+            });
         }
 
         // 朗读正确答案，优先使用 Microsoft Xiaoxiao（中文）/ Microsoft Ryan（英文）
