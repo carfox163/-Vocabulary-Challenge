@@ -1018,7 +1018,8 @@
                 }
             });
             // 1. 自动朗读正确答案：中文用 Microsoft Xiaoxiao，英文用 Microsoft Ryan
-            speakAnswer(correctText, answerLang);
+            // 朗读完正确答案后，紧跟着自动朗读“例句：……”（含中文翻译），角色不变
+            speakAnswer(correctText, answerLang, () => speakAnswerExamples(group));
             // 2. 在答案下方显示典型例句 1-2 个
             showExampleSentences(group);
         }
@@ -1035,13 +1036,17 @@
             return voices.find(v => v.lang.toLowerCase().startsWith(langPrefix)) || null;
         }
 
-        // 用优先语音朗读文本（语音列表未加载完成时自动等待）
-        function speakWithPreferredVoice(text, lang) {
-            if (!window.speechSynthesis) return;
+        // 用优先语音朗读文本（语音列表未加载完成时自动等待）；朗读结束可回调 onEnd
+        function speakWithPreferredVoice(text, lang, onEnd) {
+            if (!window.speechSynthesis) {
+                if (onEnd) onEnd();
+                return;
+            }
             const synth = window.speechSynthesis;
             const utterance = new SpeechSynthesisUtterance(text);
             utterance.lang = lang;
             utterance.volume = 1;
+            if (onEnd) utterance.onend = onEnd;
             const applyVoice = () => {
                 const voice = pickPreferredVoice(lang);
                 if (voice) utterance.voice = voice;
@@ -1100,14 +1105,49 @@
         }
 
         // 朗读正确答案，优先使用 Microsoft Xiaoxiao（中文）/ Microsoft Ryan（英文）
-        function speakAnswer(text, lang) {
-            if (!window.speechSynthesis) return;
+        function speakAnswer(text, lang, onEnd) {
+            if (!window.speechSynthesis) {
+                if (onEnd) onEnd();
+                return;
+            }
             window.speechSynthesis.cancel();
             // 朗读中文释义时，把词性缩略（如 n.、vt.）展开成完整单词朗读
             if (lang.startsWith('zh')) {
                 text = expandPosTags(text);
             }
-            speakWithPreferredVoice(text, lang);
+            speakWithPreferredVoice(text, lang, onEnd);
+        }
+
+        // 朗读完正确答案后，紧跟着自动朗读“例句：……”（含中文翻译），角色不变：英文 Microsoft Ryan、中文 Microsoft Xiaoxiao
+        function speakAnswerExamples(group) {
+            if (!currentWords[group]) return;
+            const wordObj = currentWords[group];
+            let engList = [];
+            let chnList = [];
+            // 1) 词库自带 英文例句/例句汉译
+            if (wordObj.英文例句) {
+                engList = splitLines(wordObj.英文例句).slice(0, 2);
+                chnList = splitLines(wordObj.例句汉译).slice(0, 2);
+            }
+            // 2) 内置例句库
+            if (!engList.length && DEFAULT_EXAMPLES[wordObj.英文]) {
+                engList = DEFAULT_EXAMPLES[wordObj.英文].slice(0, 2);
+            }
+            // 3) 本地缓存
+            if (!engList.length) {
+                const localMap = loadLocalExamples();
+                if (localMap[wordObj.英文]) {
+                    engList = localMap[wordObj.英文].slice(0, 2);
+                }
+            }
+            if (!engList.length) return; // 无例句则不朗读
+            // 先读“例句：”，再逐条朗读英文例句与中文译文（按顺序播放）
+            speakWithPreferredVoice('例句：', 'zh-CN', () => {
+                engList.forEach((eng, i) => {
+                    speakWithPreferredVoice(eng, 'en-US');
+                    if (chnList[i]) speakWithPreferredVoice(chnList[i], 'zh-CN');
+                });
+            });
         }
 
         // 内置例句库：默认四级真题核心词425个（离线可用，不依赖网络）
@@ -1628,8 +1668,54 @@
             }
         }
 
-function playSound(word) {
+// ===================== 英文发音：Microsoft Edge / Windows 内置 en-GB-Sonia 语音 =====================
+// en-GB-SoniaNeural 在 Windows / Edge 上以系统语音形式存在（显示名含 "Sonia"、语言 en-GB），
+// 通过浏览器 Web Speech API 就能直接选用，无需任何密钥或联网。
+// 选音优先级：① 带 Sonia 的 en-GB 语音 → ② 任意 en-GB 语音 → ③ 任意 en 语音（如 en-US）。
+// 在非 Windows / Edge 设备上没有 Sonia 时，会自动退回系统默认英文语音。
+
+// 用 Sonia / en-GB 英文语音朗读；语音列表未就绪时自动等待加载完成再朗读
+function speakEnglishWord(text) {
     const synth = window.speechSynthesis;
+    if (!synth) return;
+    const apply = () => {
+        const voice = pickSoniaOrEnVoice();
+        const utterance = new SpeechSynthesisUtterance(text);
+        if (voice) {
+            utterance.voice = voice;
+            utterance.lang = voice.lang;
+        } else {
+            utterance.lang = 'en-US';
+        }
+        synth.cancel();   // 打断上一段，避免连点声音重叠
+        synth.speak(utterance);
+    };
+    if (synth.getVoices().length) {
+        apply();
+    } else {
+        synth.onvoiceschanged = () => {
+            synth.onvoiceschanged = null;
+            apply();
+        };
+        synth.getVoices();
+    }
+}
+
+// 在系统语音列表中查找 Sonia / en-GB 英文语音
+function pickSoniaOrEnVoice() {
+    const synth = window.speechSynthesis;
+    const voices = synth.getVoices() || [];
+    // 1. 优先 Microsoft Sonia（en-GB 神经网络语音，Edge / Windows 自带）
+    let v = voices.find(v => v.lang.toLowerCase().startsWith('en-gb') && /sonia/i.test(v.name));
+    if (v) return v;
+    // 2. 任意 en-GB 语音
+    v = voices.find(v => v.lang.toLowerCase().startsWith('en-gb'));
+    if (v) return v;
+    // 3. 任意 en 语音（en-US 等）
+    return voices.find(v => v.lang.toLowerCase().startsWith('en')) || null;
+}
+
+function playSound(word) {
     let textToSpeak = word;
 
     if (gameMode === 'cn-en' || gameMode === 'spelling') {
@@ -1638,9 +1724,8 @@ function playSound(word) {
         // 中文发音优先使用 Microsoft Xiaoxiao 语音
         speakWithPreferredVoice(textToSpeak, 'zh-CN');
     } else if (gameMode === 'en-cn' || gameMode === 'spelling') {
-        const utterance = new SpeechSynthesisUtterance(word);
-        utterance.lang = 'en-US';
-        synth.speak(utterance);
+        // 英文发音：Edge/Windows 内置 en-GB-Sonia 语音（英式女声），无则退回系统英文语音
+        speakEnglishWord(word);
     }
 }
 
