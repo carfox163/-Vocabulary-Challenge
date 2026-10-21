@@ -358,17 +358,28 @@
             flex: none;
         }
 
-       .review-btn {
+       .control-row {
             position: fixed;
-            bottom: 160px;
+            bottom: 25px;
             right: 25px;
-            padding: 10px 20px;
-            border-radius: 10px;
-            background: #00b894;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            z-index: 5;
+        }
+
+       .control-row button {
+            padding: 6px 12px;
+            border-radius: 8px;
             color: white;
             border: none;
             cursor: pointer;
-            font-size: 1.1em;
+            font-size: 0.9em;
+            white-space: nowrap;
+        }
+
+       .review-btn {
+            background: #00b894;
         }
 
        .result {
@@ -382,36 +393,17 @@
             border-radius: 10px;
         }
 
-       .settings-panel {
-            position: fixed;
-            bottom: 260px;
-            right: 25px;
-            background: white;
-            padding: 15px;
-            border-radius: 15px;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-            z-index: 0;
-            width: 100px;
-            /* 修改宽度为现有一半 */
-        }
-
-       .settings-row {
-            margin-bottom: 10px;
-        }
-
-       .settings-row label {
-            display: block;
-            margin-bottom: 5px;
-            font-weight: bold;
-            color: #6c5ce7;
+       .control-row label {
             font-size: 0.9em;
+            color: #333;
+            font-weight: bold;
+            white-space: nowrap;
         }
 
-       .settings-row input,
-       .settings-row select {
-            width: 100%;
-            padding: 6px;
-            border-radius: 6px;
+       .control-row .control-field {
+            width: 70px;
+            padding: 5px 8px;
+            border-radius: 8px;
             border: 1px solid #ddd;
             font-size: 0.9em;
         }
@@ -446,29 +438,11 @@
         }
 
        .save-btn {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            padding: 10px 20px;
-            border-radius: 10px;
             background: #e84393;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1em;
         }
 
        .difficulty-btn {
-            position: fixed;
-            bottom: 70px;
-            right: 25px;
-            padding: 10px 20px;
-            border-radius: 10px;
             background: #00b894;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1em;
         }
 
        .progress-ring {
@@ -486,16 +460,7 @@
         }
 
        .sound-toggle {
-            position: fixed;
-            bottom: 115px;
-            right: 25px;
-            padding: 10px 20px;
-            border-radius: 10px;
             background: #6c5ce7;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1em;
         }
 
        .sound-toggle.off {
@@ -503,16 +468,7 @@
         }
 
        .groups-selector {
-            position: fixed;
-            bottom: 205px;
-            right: 25px;
-            padding: 10px 20px;
-            border-radius: 10px;
             background: #00cec9;
-            color: white;
-            border: none;
-            cursor: pointer;
-            font-size: 1.1em;
         }
 
        .button-container {
@@ -538,13 +494,6 @@
                 font-size: 1em;
             }
 
-           .settings-panel {
-                bottom: 25px;
-                right: 180px;
-                width: 90px;
-                /* 修改响应式布局下的宽度 */
-            }
-
            .file-bar {
                 max-width: calc(100vw - 330px);
             }
@@ -560,30 +509,13 @@
 <body>
     <!-- 添加超链接包裹文字，使用 target="_blank" 新窗口打开 -->
     <a href="http://2006b.ys168.com" target="_blank">
-        <div class="header">by CreativeLearner & Evita v2.6</div>
+        <div class="header">by CreativeLearner & Evita v2.7</div>
     </a>
     <!-- 将图片包裹在 <a> 标签内 -->
     <a href="http://2006b.ys168.com" target="_blank">
         <img src="https://s3.bmp.ovh/imgs/2025/05/18/5748f0662563f7e7.png" width="120"
             height="72" style="position: relative;">
     </a>
-    <div class="settings-panel">
-        <div class="settings-row">
-            <label for="gameTime">挑战时间(秒):</label>
-            <input type="number" id="gameTime" value="60" min="10" max="600">
-        </div>
-        <div class="settings-row">
-            <label for="optionsCount">选项数量:</label>
-            <select id="optionsCount">
-                <option value="2">2个选项</option>
-                <option value="3">3个选项</option>
-                <option value="4" selected>4个选项</option>
-                <option value="5">5个选项</option>
-                <option value="6">6个选项</option>
-            </select>
-        </div>
-    </div>
-
     <div class="file-bar">
         <input type="file" id="fileInput" accept=".xlsx,.xls">
         <!-- 未选择文件时默认加载的词库说明 -->
@@ -598,11 +530,23 @@
         <button id="downloadTemplate" style="font-family: 'Microsoft YaHei'; background: none; border: none; color: #0000EE; text-decoration: underline; cursor: pointer; font-size: 1em; padding: 0; margin: 0;">下载单词表DIY模板</button>
         <span style="color: #00b894; font-family: 'Microsoft YaHei'; font-size: 0.92em;">使用点击单词发音功能，请使用微软Edge浏览器</span>
     </div>
-    <button class="review-btn" id="reviewBtn">单词复习</button>
-    <button class="groups-selector" id="groupsSelector">分组: 2组</button>
-    <button class="difficulty-btn" id="difficultyBtn">难度: 普通</button>
-    <button class="sound-toggle" id="soundToggle">音效: 开</button>
-    <button class="save-btn" id="saveBtn">保存成绩</button>
+    <div class="control-row">
+        <label for="gameTime">挑战时间:</label>
+        <input type="number" id="gameTime" value="60" min="10" max="600" class="control-field">
+        <label for="optionsCount">选项数量:</label>
+        <select id="optionsCount" class="control-field">
+            <option value="2">2个</option>
+            <option value="3">3个</option>
+            <option value="4" selected>4个</option>
+            <option value="5">5个</option>
+            <option value="6">6个</option>
+        </select>
+        <button class="review-btn" id="reviewBtn">单词复习</button>
+        <button class="groups-selector" id="groupsSelector">分组: 1组</button>
+        <button class="difficulty-btn" id="difficultyBtn">难度: 普通</button>
+        <button class="sound-toggle" id="soundToggle">音效: 开</button>
+        <button class="save-btn" id="saveBtn">保存成绩</button>
+    </div>
     <!-- 新增的超链接 -->
     <a href="https://github.com/carfox163/cr" target="_blank" style="position: fixed; bottom: 5px; right: 85px; font-family: 'Microsoft YaHei';">github项目</a>
     <a href="https://github.com/carfox163/-Vocabulary-Challenge/blob/main/index.html" target="_blank" style="position: fixed; bottom: 5px; right: 180px; font-family: 'Microsoft YaHei';">离线版</a>  
@@ -683,7 +627,7 @@
         let gameMode = 'en-cn'; // 默认英译中模式
         let difficulty = 'normal'; // 默认普通难度
         let soundEnabled = true; // 默认开启音效
-        let groupsCount = 2; // 默认2组
+        let groupsCount = 1; // 默认1组（单人模式）
         let gameHistory = JSON.parse(localStorage.getItem('vocabularyGameHistory')) || [];
         let optionsCount = 4;
         let usedWords = { A: [], B: [], C: [] }; // 记录每个组已经使用过的单词
@@ -711,9 +655,19 @@
         function applyWords(rows, label, fileName) {
             // 英文、中文为必须字段；音标、英文例句、例句汉译为可选字段
             wordsData = (rows || []).filter(w => w && w['英文'] && w['中文']);
+            // 载入词库后清空各组当前单词，可见分组默认加载第一个单词
+            currentWords = { A: null, B: null, C: null };
+            loadFirstWordsForVisibleGroups();
             updateRemainingWords();
             setFileStatus(`（${label}：<span style="color:#e74c3c;font-weight:bold;">${wordsData.length}</span> 词${fileName ? `，来自“${fileName}”` : ''}）`);
             return wordsData.length;
+        }
+
+        // 进入每个分组时，默认加载第一个单词（仅对尚无单词的可见分组生效）
+        function loadFirstWordsForVisibleGroups() {
+            if (groupsCount >= 1 && !currentWords.A && wordsData.length) generateNewQuestion('A');
+            if (groupsCount >= 2 && !currentWords.B && wordsData.length) generateNewQuestion('B');
+            if (groupsCount >= 3 && !currentWords.C && wordsData.length) generateNewQuestion('C');
         }
 
         function base64ToArray(b64) {
@@ -819,14 +773,10 @@
         }
 
         function toggleGroupsCount() {
+            const prevCount = groupsCount;
             groupsCount = groupsCount % 3 + 1; // 循环1-3
             const btn = document.getElementById('groupsSelector');
             btn.textContent = `分组: ${groupsCount}组`;
-
-            // 显示/隐藏分组
-            document.getElementById('groupA').style.display = groupsCount >= 1 ? 'block' : 'none';
-            document.getElementById('groupB').style.display = groupsCount >= 2 ? 'block' : 'none';
-            document.getElementById('groupC').style.display = groupsCount >= 3 ? 'block' : 'none';
 
             // 重置每个分组的状态
             if (groupsCount < 3) {
@@ -853,6 +803,21 @@
                     resultB.innerHTML = '';
                 }
             }
+
+            // 应用当前分组数的布局与文字
+            applyGroupLayout();
+
+            // 新进入的分组默认加载第一个单词
+            if (groupsCount >= 2 && prevCount < 2) generateNewQuestion('B');
+            if (groupsCount >= 3 && prevCount < 3) generateNewQuestion('C');
+        }
+
+        // 根据当前分组数应用布局与文字（显示/隐藏分组、标题、按钮文字、查看答案等）
+        function applyGroupLayout() {
+            // 显示/隐藏分组
+            document.getElementById('groupA').style.display = groupsCount >= 1 ? 'block' : 'none';
+            document.getElementById('groupB').style.display = groupsCount >= 2 ? 'block' : 'none';
+            document.getElementById('groupC').style.display = groupsCount >= 3 ? 'block' : 'none';
 
             // 调整挑战容器布局
             const gameContainer = document.getElementById('gameContainer');
@@ -1680,6 +1645,7 @@ function playSound(word) {
 }
 
         // 页面打开后自动装入默认词库（未选择文件时生效）
+        applyGroupLayout();
         loadDefaultWords();
 
     </script>
