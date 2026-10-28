@@ -1,7 +1,7 @@
 🔥  [单词挑战在线 Vocabulary Challenge](https://creativelearners.netlify.app)
      [github](https://carfox163.github.io/cr/)
 
-🔥  单词挑战词汇表130个打包 带音标例句 支持单词挑战(https://creativelearner.lanzouu.com/iiRLD4dp53cd)> 
+🔥  [单词挑战词汇表130个打包 带音标例句 支持单词挑战]((https://creativelearner.lanzouu.com/iiRLD4dp53cd)> 
      <br><br>            参考下载 https://github.com/mahavivo/english-wordlists<br>
 <br>
 🔥 [外语学习资料空间](http://2006b.ys168.com) <br>
